@@ -5,7 +5,7 @@ CONTAINER_NAME="test"
 IMAGE_NAME="ubuntu:latest"
 NETWORK_MODE="bridge"
 VOLUME_MAPPING="/host/path:/container/path"
-NUM_PORTS=3  # Number of ports needed
+NUM_PORTS=1  # Number of ports needed
 
 # Function to check if a port is in use by Docker
 is_port_used() {
@@ -66,20 +66,6 @@ while [ $attempts -lt $max_attempts ]; do
     exit 1
 }
 
-# Help function
-show_help() {
-    echo "Usage: $0 [OPTIONS]"
-    echo "Create a Docker container with SSH enabled in bridge network mode"
-    echo ""
-    echo "Options:"
-    echo "  -n, --name         Container name (default: test)"
-    echo "  -i, --image        Docker image (default: ubuntu:latest)"
-    echo "  -v, --volume       Volume mapping (default: /host/path:/container/path)"
-    echo "  -h, --help         Show this help message"
-    echo ""
-    echo "Note: The script will automatically find available ports between 10000 and 15000 for SSH access."
-}
-
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -124,9 +110,9 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
 fi
 
 # Find available ports for SSH
-PORT_MAPPINGS=()
+PORT_MAPPINGS=()    
 for i in $(seq 1 $NUM_PORTS); do
-    AVAILABLE_PORT=$(find_available_port)
+    AVAILABLE_PORT=$(find_available_port)   
     if [ $? -ne 0 ]; then
         echo "$AVAILABLE_PORT"
         exit 1
@@ -226,7 +212,7 @@ for port_mapping in "${PORT_MAPPINGS[@]}"; do
     echo "Port: $port"
     echo "Username: root"
     echo "Password: root"
-    echo -e "\nConnect using: ssh -p $port root@localhost"
+    echo -e "\nConnect using: ssh -p $port root@10.50.7.11" # Change IP address as needed
 done
 
 # Show connection test command
@@ -240,4 +226,4 @@ done
 echo -e "\nHTTP Access Information:"
 echo "Host: localhost"
 echo "Port: $AVAILABLE_PORT_80"
-echo -e "\nConnect using: http://localhost:$AVAILABLE_PORT_80"
+echo -e "\nConnect using: http://localhost:$AVAILABLE_PORT_80"  # Change IP address as needed
