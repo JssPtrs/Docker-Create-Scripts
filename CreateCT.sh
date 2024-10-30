@@ -4,8 +4,26 @@
 CONTAINER_NAME="test"
 IMAGE_NAME="ubuntu:latest"
 NETWORK_MODE="bridge"
-PORT_MAPPING="10000:22"
 VOLUME_MAPPING="/host/path:/container/path"
+
+# Function to check if a port is in use by Docker
+is_port_used() {
+    local port=$1
+    docker ps --format '{{.Ports}}' | grep -q ":$port->"
+    return $?
+}
+
+# Function to find the next available port
+find_available_port() {
+    for port in $(seq 10000 15000); do
+        if ! is_port_used $port; then
+            echo $port
+            return 0
+        fi
+    done
+    echo "No available ports found between 10000 and 15000"
+    exit 1
+}
 
 # Help function
 show_help() {
@@ -15,9 +33,10 @@ show_help() {
     echo "Options:"
     echo "  -n, --name         Container name (default: test)"
     echo "  -i, --image        Docker image (default: ubuntu:latest)"
-    echo "  -p, --port         Port mapping (default: 10000:22) # Max 15000"
     echo "  -v, --volume       Volume mapping (default: /host/path:/container/path)"
     echo "  -h, --help         Show this help message"
+    echo ""
+    echo "Note: The script will automatically find an available port between 10000 and 15000 for SSH access."
 }
 
 # Parse command line arguments
@@ -31,16 +50,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         -i|--image)
             IMAGE_NAME="$2"
-            shift
-            shift
-            ;;
-        -p|--port)
-            PORT_NUMBER="${2%:*}"
-            if [ "$PORT_NUMBER" -gt 15000 ]; then
-                echo "Error: Port number must be less than 15000"
-                exit 1
-            fi
-            PORT_MAPPING="$2"
             shift
             shift
             ;;
@@ -72,6 +81,15 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     echo "Error: Container with name ${CONTAINER_NAME} already exists"
     exit 1
 fi
+
+# Find an available port
+AVAILABLE_PORT=$(find_available_port)
+if [ $? -ne 0 ]; then
+    echo "$AVAILABLE_PORT"
+    exit 1
+fi
+
+PORT_MAPPING="${AVAILABLE_PORT}:22"
 
 # Pull the Docker image
 echo "Pulling Docker image: $IMAGE_NAME"
@@ -152,11 +170,11 @@ echo -e "\nContainer status:"
 docker ps --filter "name=$CONTAINER_NAME"
 echo -e "\nSSH Access Information:"
 echo "Host: localhost"
-echo "Port: ${PORT_MAPPING%:*}"
+echo "Port: $AVAILABLE_PORT"
 echo "Username: root"
 echo "Password: root"
-echo -e "\nConnect using: ssh -p ${PORT_MAPPING%:*} root@localhost"
+echo -e "\nConnect using: ssh -p $AVAILABLE_PORT root@localhost"
 
 # Show connection test command
 echo -e "\nTo test connection immediately, use:"
-echo "nc -zv localhost ${PORT_MAPPING%:*}"
+echo "nc -zv localhost $AVAILABLE_PORT"
