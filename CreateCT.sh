@@ -5,6 +5,7 @@ CONTAINER_NAME="test"
 IMAGE_NAME="ubuntu:latest"
 NETWORK_MODE="bridge"
 VOLUME_MAPPING="/host/path:/container/path"
+NUM_PORTS=3  # Number of ports needed
 
 # Function to check if a port is in use by Docker
 is_port_used() {
@@ -14,14 +15,54 @@ is_port_used() {
 }
 
 # Function to find the next available port
+is_port_used() {
+    local port=$1
+    # Check if port is used by Docker
+    if docker ps --format '{{.Ports}}' | grep -q ":$port->"; then
+        return 0
+    fi
+    # Check if port is used by the system
+    if command -v netstat > /dev/null; then
+        if netstat -tuln | grep -q ":$port "; then
+            return 0
+        fi
+    elif command -v ss > /dev/null; then
+        if ss -tuln | grep -q ":$port "; then
+            return 0
+        fi
+    elif command -v lsof > /dev/null; then
+        if lsof -i :$port > /dev/null 2>&1; then
+            return 0
+        fi
+    fi
+    # If none of the above commands found the port in use
+    return 1
+}
+
+# Function to find the next available port with improved checking
 find_available_port() {
-    for port in $(seq 10000 15000); do
+    local start_port=10000
+    local end_port=15000
+    local attempts=0
+    local max_attempts=100  # Prevent infinite loops
+while [ $attempts -lt $max_attempts ]; do
+        # Generate a random port number within the range
+        local port=$(shuf -i $start_port-$end_port -n 1)
+        if ! is_port_used $port; then
+            echo $port
+            return 0
+        fi
+        attempts=$((attempts + 1))
+    done
+  # If we couldn't find a random port, try sequentially
+    for port in $(seq $start_port $end_port); do
         if ! is_port_used $port; then
             echo $port
             return 0
         fi
     done
-    echo "No available ports found between 10000 and 15000"
+
+    echo "No available ports found between $start_port and $end_port"
     exit 1
 }
 
@@ -36,7 +77,7 @@ show_help() {
     echo "  -v, --volume       Volume mapping (default: /host/path:/container/path)"
     echo "  -h, --help         Show this help message"
     echo ""
-    echo "Note: The script will automatically find an available port between 10000 and 15000 for SSH access."
+    echo "Note: The script will automatically find available ports between 10000 and 15000 for SSH access."
 }
 
 # Parse command line arguments
@@ -82,14 +123,24 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     exit 1
 fi
 
-# Find an available port
-AVAILABLE_PORT=$(find_available_port)
+# Find available ports for SSH
+PORT_MAPPINGS=()
+for i in $(seq 1 $NUM_PORTS); do
+    AVAILABLE_PORT=$(find_available_port)
+    if [ $? -ne 0 ]; then
+        echo "$AVAILABLE_PORT"
+        exit 1
+    fi
+    PORT_MAPPINGS+=("${AVAILABLE_PORT}:22")
+done
+
+# Find an available port for port 80
+AVAILABLE_PORT_80=$(find_available_port)
 if [ $? -ne 0 ]; then
-    echo "$AVAILABLE_PORT"
+    echo "$AVAILABLE_PORT_80"
     exit 1
 fi
-
-PORT_MAPPING="${AVAILABLE_PORT}:22"
+PORT_MAPPINGS+=("${AVAILABLE_PORT_80}:80")
 
 # Pull the Docker image
 echo "Pulling Docker image: $IMAGE_NAME"
@@ -119,7 +170,7 @@ RUN mkdir /var/run/sshd && \
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
 
-EXPOSE 22
+EXPOSE 22 80
 
 # Start SSH service
 ENTRYPOINT service ssh start && tail -f /dev/null
@@ -137,7 +188,7 @@ echo "Starting container..."
 docker run -d \
     --name "$CONTAINER_NAME" \
     --network "$NETWORK_MODE" \
-    -p "$PORT_MAPPING" \
+    $(for port_mapping in "${PORT_MAPPINGS[@]}"; do echo -n "-p $port_mapping "; done) \
     -v "$VOLUME_MAPPING" \
     "${CONTAINER_NAME}-ssh"
 
@@ -169,12 +220,24 @@ echo "Container created successfully!"
 echo -e "\nContainer status:"
 docker ps --filter "name=$CONTAINER_NAME"
 echo -e "\nSSH Access Information:"
-echo "Host: localhost"
-echo "Port: $AVAILABLE_PORT"
-echo "Username: root"
-echo "Password: root"
-echo -e "\nConnect using: ssh -p $AVAILABLE_PORT root@localhost"
+for port_mapping in "${PORT_MAPPINGS[@]}"; do
+    port=${port_mapping%%:*}
+    echo "Host: localhost"
+    echo "Port: $port"
+    echo "Username: root"
+    echo "Password: root"
+    echo -e "\nConnect using: ssh -p $port root@localhost"
+done
 
 # Show connection test command
 echo -e "\nTo test connection immediately, use:"
-echo "nc -zv localhost $AVAILABLE_PORT"
+for port_mapping in "${PORT_MAPPINGS[@]}"; do
+    port=${port_mapping%%:*}
+    echo "nc -zv localhost $port"
+done
+
+# Show port 80 mapping
+echo -e "\nHTTP Access Information:"
+echo "Host: localhost"
+echo "Port: $AVAILABLE_PORT_80"
+echo -e "\nConnect using: http://localhost:$AVAILABLE_PORT_80"
