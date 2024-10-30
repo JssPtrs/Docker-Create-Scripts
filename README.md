@@ -29,10 +29,14 @@ To use the scripts in this repository, follow these steps:
    ```bash
    ./CreateCT.sh
    ```
+   or
+   ```bash
+   sudo bash CreateCT
+   ```
 
 ## Prerequisites
 
-- [Docker Engine](https://www.docker.com/get-started) Only tested on Docker Engine
+- This is only tested on [Docker Engine](https://www.docker.com/get-started). Feel free to try on other versions
 - Ensure you have the necessary permissions to execute shell scripts.
 
 ---
