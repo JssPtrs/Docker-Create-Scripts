@@ -24,7 +24,7 @@ Default password NEEDS to be changed for security reasons. You can do this in th
 **This is only tested with Docker Engine version 27.3.1, build ce12230. Try other versions at own risk.**
 
 # Instructions
-To use the CreateCT.sh script, run the following command in your terminal:
+To use the ```CreateCT.sh``` script, run the following command in your terminal:
 
 - Clone repo:
 ```
@@ -42,9 +42,11 @@ sudo bash CreateCT.sh
 ```
 # Post-Install
 
+Currently there is this annoying bug where it outputs both port 80 and 22 as SSH. ``` sudo docker ps ``` output is in the output for clarification. If not, run ```sudo docker ps``` and see what the port mapping is.
+
 - Remote access
 ```
-ssh -p root@{YOUR_SERVER_IP}
+ssh -p {Port Assigned to SSH} root@{YOUR_SERVER_IP}
 ```
 - Default password
 ```
@@ -53,7 +55,12 @@ root
 
 **WARNING** 
 
-Default password NEEDS to be changed for security reasons. You can do this in the script or post install. Post install is more secure.
+Default password NEEDS to be changed for security reasons. You can do this in the script or post install. Post install is more secure. 
+
+- You can change the password with the following command **IN** the docker container itself, then follow the instructions on screen:
+```
+passwd
+```
 
 - Update the container
 ```
