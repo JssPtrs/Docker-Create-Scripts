@@ -31,6 +31,8 @@ To use the ```CreateCT.sh``` script, run the following command in your terminal:
 git clone https://github.com/PetersenJesse/Docker-Create-Scripts
 ```
 
+(Or make own file and copy paste code!)
+
 - Make the script executable:
 ```
 chmod +x CreateCT.sh
