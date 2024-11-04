@@ -48,6 +48,14 @@ git clone https://github.com/PetersenJesse/Docker-Create-Scripts
 chmod +x CreateCT.sh
 ```
 
+- Change IP
+
+Go into the script and change the IP to the IP of the server docker runs on
+
+```
+IP_ADDRESS="YOUR_IP"
+```
+
 - Execute:
 ```
 ./CreateCT.sh -n {CONTAINER NAME} -i {IMAGE}
