@@ -7,7 +7,7 @@ IMAGE_NAME="ubuntu:latest"
 NETWORK_MODE="bridge"
 VOLUME_MAPPING="/host/path:/container/path"
 NUM_PORTS=1
-IP_ADDRESS="10.50.7.11" # Change this to the IP address of your Docker host
+IP_ADDRESS="YOUR_IP" # Change this to the IP address of your Docker host
 
 # Port configuration
 PORT_RANGE_START=10000
