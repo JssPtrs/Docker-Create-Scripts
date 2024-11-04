@@ -51,10 +51,6 @@ chmod +x CreateCT.sh
 - Execute:
 ```
 ./CreateCT.sh -n {CONTAINER NAME} -i {IMAGE}
-<<<<<<< HEAD
-
-=======
->>>>>>> 338169ab06369c11f553b5d99729b20ed706bb9e
 ```
 or
 
