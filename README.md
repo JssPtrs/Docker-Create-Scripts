@@ -9,6 +9,16 @@ The script ensures that the Docker container starts correctly and verifies SSH s
 
 Runs Ubuntu image, can be changed to whatever.
 
+
+
+I created the CreateCT.sh script to simplify and automate the process of setting up Docker containers with specific configurations. The primary reasons for choosing to develop this product were:
+
+- Ease of Use: To provide a straightforward solution for users to set up Docker containers with SSH access and custom port mappings without manual configuration.
+- Automation: To automate repetitive tasks such as checking port availability, creating Dockerfiles, and ensuring container services run correctly.
+- Flexibility: To allow users to extend and customize the script to suit their needs, including changing the base image and adding more port mappings.
+
+This script aims to save time and reduce errors in container setup, making it a valuable tool for developers and system administrators.
+    
 .
 
 **WARNING**
