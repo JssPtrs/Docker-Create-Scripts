@@ -50,11 +50,15 @@ chmod +x CreateCT.sh
 
 - Execute:
 ```
+./CreateCT.sh -n {CONTAINER NAME} -i {IMAGE}
+
+```
+or
+
+```
 sudo bash CreateCT.sh
 ```
 # Post-Install
-
-Currently there is this annoying bug where it outputs both port 80 and 22 as SSH. ``` sudo docker ps ``` output is in the output for clarification. If not, run ```sudo docker ps``` and see what the port mapping is.
 
 - Remote access
 ```
