@@ -50,6 +50,11 @@ chmod +x CreateCT.sh
 
 - Execute:
 ```
+./CreateCT.sh -n {CONTAINER NAME} -i {IMAGE}
+```
+or
+
+```
 sudo bash CreateCT.sh
 ```
 # Post-Install
