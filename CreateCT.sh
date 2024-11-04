@@ -1,3 +1,19 @@
+# This script creates a Docker container with SSH and HTTP access.
+# It performs the following steps:
+# 1. Sets default values for container name, image name, network mode, volume mapping, and number of ports.
+# 2. Defines functions to check if a port is in use and to find the next available port.
+# 3. Parses command line arguments to override default values.
+# 4. Checks if Docker is running and if the specified container name already exists.
+# 5. Finds available ports for SSH and HTTP access.
+# 6. Pulls the specified Docker image.
+# 7. Creates a Dockerfile to install and configure SSH in the container.
+# 8. Builds a custom Docker image with SSH enabled.
+# 9. Runs the Docker container with the specified settings.
+# 10. Cleans up the Dockerfile.
+# 11. Waits for the container to start and checks if it is running.
+# 12. Tests the SSH service in the container.
+# 13. Outputs the container status and SSH/HTTP access information.
+
 #!/bin/bash
 
 # Set default values
